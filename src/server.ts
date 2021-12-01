@@ -6,7 +6,13 @@ import { Client } from "pg";
 //and default username and password,
 //we only need to specify the (non-default) database name.
 
-const client = new Client({ database: "todoapp" });
+const config = {
+  connectionString: process.env.DATABASE_URL,
+
+  ssl: { rejectUnauthorized: false },
+};
+
+const client = new Client(config);
 
 //TODO: this request for a connection will not necessarily complete before the first HTTP request is made!
 client.connect();
