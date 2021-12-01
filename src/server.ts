@@ -35,7 +35,7 @@ app.get("/todo", async (req, res) => {
     const result = await client.query("SELECT * FROM todo");
     res.json(result.rows);
   } catch (error) {
-    console.log("error 404");
+    console.log("error 401");
   }
 
   app.get("/todo/:id", async (req, res) => {
