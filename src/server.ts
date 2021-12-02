@@ -27,13 +27,6 @@ client.connect().then(() => {
   app.use(express.json());
   app.use(cors());
 
-  //  HOME PAGE
-  app.get("/", (req, res) => {
-    const pathToFile = filePath("../public/index.html");
-    console.log(pathToFile);
-    res.sendFile(pathToFile);
-  });
-
   // GET ALL TODOS
   app.get("/todos", async (req, res) => {
     const result = await client.query("SELECT * FROM todos;");

@@ -31,7 +31,6 @@ const app = express_1.default();
 app.use(express_1.default.json());
 //When this route is called, return the most recent 100 signatures in the db
 db_1.client.connect().then(() => {
-    var _a;
     console.log("Connected to Heroku database!");
     app.use(express_1.default.json());
     app.use(cors_1.default());
@@ -112,10 +111,5 @@ db_1.client.connect().then(() => {
             },
         });
     }));
-    // use the environment variable PORT, or 4000 as a fallback
-    const PORT_NUMBER = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 4000;
-    app.listen(PORT_NUMBER, () => {
-        console.log(`Server listening on port ${PORT_NUMBER}!`);
-    });
 });
 exports.default = app;
