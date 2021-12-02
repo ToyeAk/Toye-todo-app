@@ -116,13 +116,6 @@ client.connect().then(() => {
       },
     });
   });
-
-  // use the environment variable PORT, or 4000 as a fallback
-  const PORT_NUMBER = process.env.PORT ?? 4000;
-
-  app.listen(PORT_NUMBER, () => {
-    console.log(`Server listening on port ${PORT_NUMBER}!`);
-  });
 });
 
 export default app;
