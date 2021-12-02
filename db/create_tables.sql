@@ -1,7 +1,7 @@
-DROP TABLE IF EXISTS signatures;
-CREATE TABLE signatures (
+DROP TABLE IF EXISTS todo;
+CREATE TABLE todo (
     id serial primary key,
-    signature text not null,
+    description text not null,
     message text,
     time timestamp not null default now()
 );

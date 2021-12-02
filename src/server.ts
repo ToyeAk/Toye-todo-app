@@ -1,10 +1,14 @@
 import express from "express";
 import cors from "cors";
 import { Client } from "pg";
+import dotenv from "dotenv";
+import filePath from "./filePath";
 
 //As your database is on your local machine, with default port,
 //and default username and password,
 //we only need to specify the (non-default) database name.
+
+dotenv.config();
 
 const config = {
   connectionString: process.env.DATABASE_URL,
@@ -15,42 +19,83 @@ const config = {
 const client = new Client(config);
 
 //TODO: this request for a connection will not necessarily complete before the first HTTP request is made!
-client.connect();
 
 const app = express();
 
 /**
- * Simplest way to connect a front-end. Unimportant detail right now, although you can read more: https://flaviocopes.com/express-cors/
- */
-app.use(cors());
-
+ 
 /**
  * Middleware to parse a JSON body in requests
  */
 app.use(express.json());
 
 //When this route is called, return the most recent 100 signatures in the db
-app.get("/todo", async (req, res) => {
-  try {
-    const result = await client.query("SELECT * FROM todo");
-    res.json(result.rows);
-  } catch (error) {
-    console.log("error 401");
-  }
+client.connect().then(() => {
+  console.log("Connected to Heroku database!");
+  app.use(express.json());
+  app.use(cors());
 
-  app.get("/todo/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
+  //  HOME PAGE
+  app.get("/", (req, res) => {
+    const pathToFile = filePath("../public/index.html");
+    console.log(pathToFile);
+    res.sendFile(pathToFile);
+  });
 
-      const result = await client.query("SELECT * FROM todo WHERE id = $1", [
-        id,
-      ]);
-      res.json(result.rows[0]);
-    } catch (err) {
-      console.log("error");
+  // GET ALL TODOS
+  app.get("/todos", async (req, res) => {
+    const result = await client.query("SELECT * FROM todos;");
+    res.status(200).json({
+      status: "success",
+      result,
+    });
+  });
+
+  // GET A TODO BY ID
+  app.get("/todos/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const result = await client.query("SELECT * FROM todos WHERE id = $1;", [
+      id,
+    ]);
+    if (result.rowCount !== 0) {
+      res.status(200).json({
+        status: "success",
+        result,
+      });
+    } else {
+      res.status(404).json({
+        status: "fail",
+        data: {
+          id: "Could not find a todo with that id identifier",
+        },
+      });
     }
   });
 
+  // UPDATE A TODO BY ID
+  app.put("/todos/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { description, due_date, is_complete } = req.body;
+    const result = await client.query(
+      "UPDATE todos SET description = $1, due_date = $2, is_complete = $3 WHERE id = $4 RETURNING *;",
+      [description, due_date, is_complete, id]
+    );
+    if (result.rowCount !== 0) {
+      res.status(200).json({
+        status: "success",
+        result,
+      });
+    } else {
+      res.status(404).json({
+        status: "fail",
+        data: {
+          id: "Could not find a todo with that id identifier",
+        },
+      });
+    }
+  });
+
+  // ADD A TODO
   app.post("/todo", async (req, res) => {
     try {
       const { description, due_date, is_complete } = req.body;
@@ -65,33 +110,27 @@ app.get("/todo", async (req, res) => {
     }
   });
 
-  app.put("/todo/:id", async (req, res) => {
-    try {
-      const { description, due_date } = req.body;
-      const id = parseInt(req.params.id);
-      const updateTodo = await client.query(
-        "UPDATE todo SET description = $1, due_date = $2 WHERE id = $3 RETURNING *",
-        [description, due_date, id]
-      );
-
-      res.status(200).json({
-        status: "sucess",
-        updateTodo,
-      });
-    } catch (error) {
-      console.log("error");
-    }
+  // DELETE A TODO BY ID
+  app.delete("/todos/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const deletedTodo = await client.query(
+      "DELETE FROM todos WHERE id = $1 RETURNING *",
+      [id]
+    );
+    res.status(200).json({
+      status: "success",
+      data: {
+        deletedTodo,
+      },
+    });
   });
 
-  app.delete("/todo/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id); // params are string type
-      const result = client.query("DELETE from todo WHERE id = $1", [id]);
+  // use the environment variable PORT, or 4000 as a fallback
+  const PORT_NUMBER = process.env.PORT ?? 4000;
 
-      res.json("todo was deleted").json;
-    } catch (error) {
-      console.log("error");
-    }
+  app.listen(PORT_NUMBER, () => {
+    console.log(`Server listening on port ${PORT_NUMBER}!`);
   });
 });
+
 export default app;
