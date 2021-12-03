@@ -16,7 +16,6 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const db_1 = require("./db");
 const dotenv_1 = __importDefault(require("dotenv"));
-const filePath_1 = __importDefault(require("./filePath"));
 //As your database is on your local machine, with default port,
 //and default username and password,
 //we only need to specify the (non-default) database name.
@@ -34,12 +33,6 @@ db_1.client.connect().then(() => {
     console.log("Connected to Heroku database!");
     app.use(express_1.default.json());
     app.use(cors_1.default());
-    //  HOME PAGE
-    app.get("/", (req, res) => {
-        const pathToFile = filePath_1.default("../public/index.html");
-        console.log(pathToFile);
-        res.sendFile(pathToFile);
-    });
     // GET ALL TODOS
     app.get("/todos", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const result = yield db_1.client.query("SELECT * FROM todos;");

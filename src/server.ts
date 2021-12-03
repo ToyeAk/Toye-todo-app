@@ -19,7 +19,6 @@ const app = express();
 /**
  * Middleware to parse a JSON body in requests
  */
-app.use(express.json());
 
 //When this route is called, return the most recent 100 signatures in the db
 client.connect().then(() => {
